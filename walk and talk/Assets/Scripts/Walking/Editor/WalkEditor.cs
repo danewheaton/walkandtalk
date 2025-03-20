@@ -15,11 +15,6 @@ namespace WalkAndTalk
          * - the gizmo is either locked to or points at navigable surfaces, to indicate where a walker can stand
          * - if we know the character we are staging, its model is part of the gizmo in an idle pose (to preview what it will look like during gameplay)
          * - when the button is pressed again, the gizmo's position and rotation are saved to the node or list element or whatever
-         * 
-         * COMPATIBILITY
-         * - should be compatible with unity's animation rigging package
-         * - should be compatible with unity's starter assets package
-         * - should also have a standalone homebrew option for users who don't want any unity packages
          */
     }
 }

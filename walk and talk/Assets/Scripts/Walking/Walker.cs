@@ -10,6 +10,12 @@ namespace WalkAndTalk
     /// </summary>
     public class Walker : MonoBehaviour
     {
+        /* COMPATIBILITY
+         * - should be compatible with unity's animation rigging package
+         * - should be compatible with unity's starter assets package
+         * - should also have a standalone homebrew option for users who don't want any unity packages
+         */
+        
         public enum Speed { Sneak, Stroll, Walk, Stride, Jog, Run, Sprint }
         
         [Serializable]

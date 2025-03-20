@@ -11,6 +11,14 @@ namespace WalkAndTalk
     /// </summary>
     public class Talker : MonoBehaviour
     {
+        /* COMPATIBILITY
+         * - I remember a popular old-school dialogue system that was simply called "dialogue system for unity" or something, maybe be compatible with that
+         * - definitely compatible with ink
+         * - definitely compatible with yarn/yarnspinner/whatever
+         * - definitely compatible with whatever unity UI solutions are popular this week (textMeshPro, whatever "UI toolkit" is, legacy, whatever whatever bleh)
+         * - should also have a standalone homebrew option for users who don't want any unity packages
+         */
+        
         [Serializable]
         public struct Line
         {
