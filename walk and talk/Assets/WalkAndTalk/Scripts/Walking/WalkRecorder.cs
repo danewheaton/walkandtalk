@@ -12,12 +12,13 @@ namespace WalkAndTalk
     /// </summary>
     public class WalkRecorder : MonoBehaviour
     {
-        [SerializeField] private Transform target;  // TODO: make this work with prefabs too
+        [SerializeField] private Transform target;  // TODO: if the user drags a prefab into this slot rather than a gameObject in the scene, the code should understand and account for this
         [SerializeField] private KeyCode recordButton, localRecordButton;
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
         [SerializeField] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
 
         private List<WalkRecording.PositionRotationKeyframe> recordedKeyframes = new List<WalkRecording.PositionRotationKeyframe>();
+        private Coroutine previewCoroutine;
         private Vector3 startPosition;
         private Quaternion startRotation;
         private float lastRecordTime = 0f;
@@ -137,7 +138,23 @@ namespace WalkAndTalk
         
         public void PreviewRecording(WalkRecording recording)
         {
-            StartCoroutine(PlayRecordingPreview(recording));
+            StopPreview();
+            previewCoroutine = StartCoroutine(PlayRecordingPreview(recording));
+        }
+
+        public void StopPreview()
+        {
+            if (previewCoroutine != null)
+            {
+                StopCoroutine(previewCoroutine);
+                previewCoroutine = null;
+        
+                GameObject previewObject = GameObject.Find("Recording Preview");    // TODO: is there a better way to do this?
+                if (previewObject != null)
+                {
+                    DestroyImmediate(previewObject);
+                }
+            }
         }
         
         private IEnumerator PlayRecordingPreview(WalkRecording recording)
@@ -147,7 +164,7 @@ namespace WalkAndTalk
                 yield break;
             }
     
-            Transform previewObject = GameObject.CreatePrimitive(PrimitiveType.Cube).transform; // TODO: this should be an arrow gizmo or something instead
+            Transform previewObject = GameObject.CreatePrimitive(PrimitiveType.Cube).transform; // TODO: this should be a simple gizmo instead
             previewObject.name = "Recording Preview";
     
             Vector3 startPos = target.position;
@@ -168,7 +185,7 @@ namespace WalkAndTalk
                     previewObject.rotation = Quaternion.Euler(keyframe.Rotation);
                 }
         
-                yield return new WaitForSeconds(recording.KeyframeInterval);    // TODO: for some reason, this takes eons outside of Play mode (tested on a recording whose interval is 1sec)
+                yield return new WaitForSeconds(recording.KeyframeInterval);    // TODO: this takes eons outside of Play mode (tested on a recording whose interval is 1sec), should maybe use a special editor coroutine if testing outside of runtime
             }
     
             DestroyImmediate(previewObject.gameObject);

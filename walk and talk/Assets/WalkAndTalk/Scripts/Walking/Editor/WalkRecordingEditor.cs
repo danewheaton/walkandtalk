@@ -7,23 +7,38 @@ namespace WalkAndTalk
     [CustomEditor(typeof(WalkRecording))]
     public class WalkRecordingEditor : Editor
     {
+        private static bool previewIsPlaying = false;
+        private static WalkRecorder activeRecorder = null;
+        
         public override void OnInspectorGUI()
         {
             WalkRecording recording = (WalkRecording)target;
             
+            string buttonText = previewIsPlaying ? "Stop Preview" : "Preview in Scene";
             if (GUILayout.Button("Preview in Scene"))
             {
-                // TODO: this button should change to "stop preview" when preview is playing
-                
-                WalkRecorder recorder = FindObjectOfType<WalkRecorder>();
-                if (recorder == null)
+                if (previewIsPlaying)
                 {
-                    GameObject go = new GameObject("Recording Preview");
-                    recorder = go.AddComponent<WalkRecorder>();
-                    // TODO: if we did this, we should delete it when the preview ends
+                    if (activeRecorder != null)
+                    {
+                        activeRecorder.StopPreview();
+                        activeRecorder = null;
+                    }
+                    previewIsPlaying = false;
                 }
+                else
+                {
+                    WalkRecorder recorder = FindObjectOfType<WalkRecorder>();
+                    if (recorder == null)
+                    {
+                        GameObject previewObject = new GameObject("Recording Preview");
+                        recorder = previewObject.AddComponent<WalkRecorder>();
+                    }
                 
-                recorder.PreviewRecording(recording);
+                    recorder.PreviewRecording(recording);
+                    activeRecorder = recorder;
+                    previewIsPlaying = true;
+                }
             }
             
             DrawDefaultInspector();
