@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace WalkAndTalk
 {
-    public class WalkEditor
+    public static class WalkEditor
     {
         /* feature wishlist:
          *

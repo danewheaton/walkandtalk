@@ -14,8 +14,8 @@ namespace WalkAndTalk
         {
             WalkRecording recording = (WalkRecording)target;
             
-            string buttonText = previewIsPlaying ? "Stop Preview" : "Preview in Scene";
-            if (GUILayout.Button("Preview in Scene"))
+            string buttonText = previewIsPlaying ? "Stop Preview" : "Preview in Scene"; // TODO: this continues to show "Preview in Scene" after the preview finishes
+            if (GUILayout.Button(buttonText))
             {
                 if (previewIsPlaying)
                 {

@@ -12,12 +12,13 @@ namespace WalkAndTalk
     /// </summary>
     public class WalkRecorder : MonoBehaviour
     {
-        [SerializeField] private Transform target;  // TODO: if the user drags a prefab into this slot rather than a gameObject in the scene, the code should understand and account for this
-        [SerializeField] private KeyCode recordButton, localRecordButton;
+        [SerializeField] private Transform target;  // TODO: if the user drags a prefab into this slot rather than a gameObject in the scene, the code should understand to look for an instance at runtime
+        [SerializeField] private KeyCode recordButton, localRecordButton;   // TODO: this should also account for the new input system
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
-        [SerializeField] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
+        [SerializeField, Tooltip("recording file will be saved in this folder")] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
 
         private List<WalkRecording.PositionRotationKeyframe> recordedKeyframes = new List<WalkRecording.PositionRotationKeyframe>();
+        private GameObject previewObject;
         private Coroutine previewCoroutine;
         private Vector3 startPosition;
         private Quaternion startRotation;
@@ -34,7 +35,6 @@ namespace WalkAndTalk
 
         private void Update()
         {
-            // TODO: these shouldn't conflict with each other, and starting one while the other is recording should abort the other
             if (Input.GetKeyDown(recordButton))
             {
                 local = false;
@@ -55,7 +55,12 @@ namespace WalkAndTalk
         
         private void ToggleRecording()
         {
-            if (!recording)
+            if (recording)
+            {
+                recording = false;
+                SaveRecording();
+            }
+            else
             {
                 recording = true;
                 recordedKeyframes.Clear();
@@ -64,17 +69,13 @@ namespace WalkAndTalk
 
                 StartCoroutine(ShowRecordingIndicator());
             }
-            else
-            {
-                recording = false;
-                SaveRecording();
-            }
         }
 
         private IEnumerator ShowRecordingIndicator()
         {
             Debug.Log($"Recording " + (local ? "local movement" : "movement"));
             
+            // TODO: change ALL renderers in children, not just one
             Color originalColor = target.GetComponentInChildren<Renderer>()?.material.color ?? Color.white;
             Renderer renderer = target.GetComponentInChildren<Renderer>();
     
@@ -96,11 +97,11 @@ namespace WalkAndTalk
         private void SaveRecording()
         {
             WalkRecording walkRecording = ScriptableObject.CreateInstance<WalkRecording>();
-            walkRecording.Local = local;
+            walkRecording.Local = local;    // TODO: if I was recording a global clip, and then click the local recording button, the file is saved as local. expected behavior is it is saved as global
             walkRecording.KeyframeInterval = keyframeInterval;
             walkRecording.Keyframes = recordedKeyframes;
             
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string timestamp = DateTime.Now.ToString("yyyy-MMdd-HHmmss");
             string recordingName = $"{(local ? "Local" : "")}Recording_{timestamp}";
             
             if (!System.IO.Directory.Exists(filepath))
@@ -149,10 +150,10 @@ namespace WalkAndTalk
                 StopCoroutine(previewCoroutine);
                 previewCoroutine = null;
         
-                GameObject previewObject = GameObject.Find("Recording Preview");    // TODO: is there a better way to do this?
                 if (previewObject != null)
                 {
                     DestroyImmediate(previewObject);
+                    previewObject = null;
                 }
             }
         }
@@ -164,8 +165,9 @@ namespace WalkAndTalk
                 yield break;
             }
     
-            Transform previewObject = GameObject.CreatePrimitive(PrimitiveType.Cube).transform; // TODO: this should be a simple gizmo instead
-            previewObject.name = "Recording Preview";
+            previewObject = new GameObject("Recording Preview");
+            previewObject.AddComponent<PositionGizmo>();
+            Transform previewTransform = previewObject.transform;
     
             Vector3 startPos = target.position;
             Quaternion startRot = target.rotation;
@@ -176,19 +178,54 @@ namespace WalkAndTalk
         
                 if (recording.Local)
                 {
-                    previewObject.position = startPos + startRot * keyframe.Position;
-                    previewObject.rotation = startRot * Quaternion.Euler(keyframe.Rotation);
+                    previewTransform.position = startPos + startRot * keyframe.Position;
+                    previewTransform.rotation = startRot * Quaternion.Euler(keyframe.Rotation);
                 }
                 else
                 {
-                    previewObject.position = keyframe.Position;
-                    previewObject.rotation = Quaternion.Euler(keyframe.Rotation);
+                    previewTransform.position = keyframe.Position;
+                    previewTransform.rotation = Quaternion.Euler(keyframe.Rotation);
                 }
-        
-                yield return new WaitForSeconds(recording.KeyframeInterval);    // TODO: this takes eons outside of Play mode (tested on a recording whose interval is 1sec), should maybe use a special editor coroutine if testing outside of runtime
+
+                if (Application.isPlaying)
+                {
+                    yield return new WaitForSeconds(recording.KeyframeInterval);
+                }
+                else
+                {
+                    // TODO: this doesn't work (and maybe can't work? I don't know if it's possible to see something happening smoothly in scene view over time while the game isn't running)
+                    float startTime = (float)EditorApplication.timeSinceStartup;
+                    while ((float)EditorApplication.timeSinceStartup - startTime < recording.KeyframeInterval)
+                    {
+                        yield return null;
+                        SceneView.RepaintAll();
+                    }
+                }
             }
     
             DestroyImmediate(previewObject.gameObject);
+        }
+    }
+    
+    public class PositionGizmo : MonoBehaviour
+    {
+        // TODO: this renders below the ground and is generally weirder than I'd like. should maybe just be an isosceles triangle, not something as complex as an arrow
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.blue;
+            Vector3 forward = transform.forward * 0.5f;
+            Gizmos.DrawLine(transform.position, transform.position + forward);
+            
+            Vector3 right = transform.right * 0.15f;
+            Vector3 up = transform.up * 0.15f;
+            Vector3 arrowTip = transform.position + forward;
+            
+            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f + right);
+            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f - right);
+            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f + up);
+            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f - up);
+            
+            Handles.Label(transform.position + Vector3.up * 0.5f, "Preview");
         }
     }
 }
