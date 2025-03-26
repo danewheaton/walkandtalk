@@ -12,6 +12,8 @@ namespace WalkAndTalk
     /// </summary>
     public class WalkRecorder : MonoBehaviour
     {
+        public bool PreviewIsPlaying { get; private set; }
+        
         [SerializeField] private Transform target;  // TODO: if the user drags a prefab into this slot rather than a gameObject in the scene, the code should understand to look for an instance at runtime
         [SerializeField] private KeyCode recordButton, localRecordButton;   // TODO: this should also account for the new input system
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
@@ -75,22 +77,42 @@ namespace WalkAndTalk
         {
             Debug.Log($"Recording " + (local ? "local movement" : "movement"));
             
-            // TODO: change ALL renderers in children, not just one
-            Color originalColor = target.GetComponentInChildren<Renderer>()?.material.color ?? Color.white;
-            Renderer renderer = target.GetComponentInChildren<Renderer>();
-    
+            Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
+            Color[][] originalColors = new Color[renderers.Length][];
+            
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                originalColors[i] = new Color[renderers[i].materials.Length];
+                for (int j = 0; j < renderers[i].materials.Length; j++)
+                {
+                    originalColors[i][j] = renderers[i].materials[j].color;
+                }
+            }
+            
             while (recording)
             {
-                if (renderer != null)
+                for (int i = 0; i < renderers.Length; i++)
                 {
-                    renderer.material.color = Time.time % 1 > 0.5f ? originalColor : Color.red;
+                    for (int j = 0; j < renderers[i].materials.Length; j++)
+                    {
+                        if (renderers[i] != null)
+                        {
+                            renderers[i].materials[j].color = Time.time % 1 > 0.5f ? originalColors[i][j] : Color.red;
+                        }
+                    }
                 }
                 yield return null;
             }
-    
-            if (renderer != null)
+            
+            for (int i = 0; i < renderers.Length; i++)
             {
-                renderer.material.color = originalColor;
+                for (int j = 0; j < renderers[i].materials.Length; j++)
+                {
+                    if (renderers[i] != null)
+                    {
+                        renderers[i].materials[j].color = originalColors[i][j];
+                    }
+                }
             }
         }
         
@@ -141,6 +163,7 @@ namespace WalkAndTalk
         {
             StopPreview();
             previewCoroutine = StartCoroutine(PlayRecordingPreview(recording));
+            PreviewIsPlaying = true;
         }
 
         public void StopPreview()
@@ -156,6 +179,7 @@ namespace WalkAndTalk
                     previewObject = null;
                 }
             }
+            PreviewIsPlaying = false;
         }
         
         private IEnumerator PlayRecordingPreview(WalkRecording recording)
@@ -204,28 +228,27 @@ namespace WalkAndTalk
             }
     
             DestroyImmediate(previewObject.gameObject);
+            PreviewIsPlaying = false;
         }
     }
     
     public class PositionGizmo : MonoBehaviour
     {
-        // TODO: this renders below the ground and is generally weirder than I'd like. should maybe just be an isosceles triangle, not something as complex as an arrow
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.blue;
             Vector3 forward = transform.forward * 0.5f;
-            Gizmos.DrawLine(transform.position, transform.position + forward);
-            
             Vector3 right = transform.right * 0.15f;
-            Vector3 up = transform.up * 0.15f;
-            Vector3 arrowTip = transform.position + forward;
+            Vector3 back = -transform.forward * 0.15f;
+
+            Vector3 slightlyAboveGround = transform.position + Vector3.up * 0.1f;
+            Vector3 tip = slightlyAboveGround + forward;
+            Vector3 leftBase = slightlyAboveGround + back - right;
+            Vector3 rightBase = slightlyAboveGround + back + right;
             
-            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f + right);
-            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f - right);
-            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f + up);
-            Gizmos.DrawLine(arrowTip, arrowTip - forward * 0.2f - up);
-            
-            Handles.Label(transform.position + Vector3.up * 0.5f, "Preview");
+            Gizmos.DrawLine(tip, leftBase);
+            Gizmos.DrawLine(tip, rightBase);
+            Gizmos.DrawLine(leftBase, rightBase);
         }
     }
 }

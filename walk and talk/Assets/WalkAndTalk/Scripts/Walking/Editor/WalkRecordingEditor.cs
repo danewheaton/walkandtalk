@@ -7,14 +7,20 @@ namespace WalkAndTalk
     [CustomEditor(typeof(WalkRecording))]
     public class WalkRecordingEditor : Editor
     {
-        private static bool previewIsPlaying = false;
         private static WalkRecorder activeRecorder = null;
+        private static bool previewIsPlaying = false;
         
         public override void OnInspectorGUI()
         {
-            WalkRecording recording = (WalkRecording)target;
+            previewIsPlaying = false;
+            if (activeRecorder != null)
+            {
+                previewIsPlaying = activeRecorder.PreviewIsPlaying;
+            }
             
-            string buttonText = previewIsPlaying ? "Stop Preview" : "Preview in Scene"; // TODO: this continues to show "Preview in Scene" after the preview finishes
+            WalkRecording recording = (WalkRecording)target;
+            string buttonText = previewIsPlaying ? "Stop Preview" : "Preview in Scene"; // TODO: kind of annoying that this doesn't immediately repaint when the preview ends
+            
             if (GUILayout.Button(buttonText))
             {
                 if (previewIsPlaying)
@@ -24,7 +30,6 @@ namespace WalkAndTalk
                         activeRecorder.StopPreview();
                         activeRecorder = null;
                     }
-                    previewIsPlaying = false;
                 }
                 else
                 {
@@ -37,7 +42,6 @@ namespace WalkAndTalk
                 
                     recorder.PreviewRecording(recording);
                     activeRecorder = recorder;
-                    previewIsPlaying = true;
                 }
             }
             
