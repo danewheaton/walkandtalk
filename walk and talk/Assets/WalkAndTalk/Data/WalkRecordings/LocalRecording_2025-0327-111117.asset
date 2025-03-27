@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee68076b35cc8634aac36a9681dfe22c, type: 3}
+  m_Name: LocalRecording_2025-0327-111117
+  m_EditorClassIdentifier: 
+  Local: 1
+  KeyframeInterval: 0.1
+  Keyframes:
+  - Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0, z: 0}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 0.06337392}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000017881393, z: 0.21946955}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000023841858, z: 0.406469}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 0.61063457}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 0.81515175}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 1.0235023}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 1.2275141}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000023841858, z: 1.4323858}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000023841858, z: 1.6387246}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000017881393, z: 1.842953}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000017881393, z: 2.0482035}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 2.2487402}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 2.4520833}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 2.6521964}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000017881393, z: 2.8584452}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000017881393, z: 3.0635822}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 3.269874}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 3.3813534}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000017881393, z: 3.4206514}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 3.4326043}
+    Rotation: {x: -0, y: 0, z: 0}
+  - Position: {x: 0, y: 0.00000011920929, z: 3.4326043}
+    Rotation: {x: -0, y: 0, z: 0}

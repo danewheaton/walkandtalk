@@ -15,7 +15,8 @@ namespace WalkAndTalk
             public Vector3 Rotation;
         }
         
-        public bool Local = false;  // if a recording is local, that means the positions and rotations are saved as relative to the recorded walker's starting point so that when applied to another walker, that walker follows the path described in the recording from wherever they are standing rather than walking to the exact position where the player started recording (an example of a local recording would be spinning around in a circle - we do not care where the player happened to be standing when they spun around in a circle, only that they spun around in a circle)
+        [Tooltip("if a recording is local, that means the positions and rotations are saved as relative to the recorded walker's starting point so that when applied to another walker, that walker follows the path described in the recording from wherever they are standing rather than walking to the exact position where the player started recording (an example of a local recording would be spinning around in a circle - we do not care where the player happened to be standing when they spun around in a circle, only that they spun around in a circle)")]
+        public bool Local = false;  // TODO: changing this from global to local in the inspector should also change the preview behavior
         public float KeyframeInterval = 0.1f;
         public List<PositionRotationKeyframe> Keyframes;
     }

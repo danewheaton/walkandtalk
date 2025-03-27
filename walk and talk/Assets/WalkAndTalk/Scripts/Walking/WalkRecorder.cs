@@ -4,28 +4,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Unity.EditorCoroutines.Editor;
 
 namespace WalkAndTalk
 {
     /// <summary>
     /// this is a fun one - press a button to start recording yourself walking around, then press it again to save your movements as a collection of keyframes!
     /// </summary>
-    public class WalkRecorder : MonoBehaviour
+    [ExecuteInEditMode]
+    public class WalkRecorder : MonoBehaviour   // TODO: should this maybe be a scriptable object or even an editor window or something? I don't see a reason this needs to exist as a GameObject in a scene
     {
         public bool PreviewIsPlaying { get; private set; }
         
         [SerializeField] private Transform target;  // TODO: if the user drags a prefab into this slot rather than a gameObject in the scene, the code should understand to look for an instance at runtime
-        [SerializeField] private KeyCode recordButton, localRecordButton;   // TODO: this should also account for the new input system
+        [SerializeField] private KeyCode recordButton, localRecordButton;   // TODO: there should also be options for the new input system
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
         [SerializeField, Tooltip("recording file will be saved in this folder")] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
 
         private List<WalkRecording.PositionRotationKeyframe> recordedKeyframes = new List<WalkRecording.PositionRotationKeyframe>();
         private GameObject previewObject;
-        private Coroutine previewCoroutine;
+        private Coroutine previewCoroutineRuntime;
+        private EditorCoroutine previewCoroutineEditor;
         private Vector3 startPosition;
         private Quaternion startRotation;
         private float lastRecordTime = 0f;
-        private bool recording = false, local = false;
+        private bool recording = false, lastRecordingWasLocal = false;
 
         private void Awake()
         {
@@ -37,15 +40,18 @@ namespace WalkAndTalk
 
         private void Update()
         {
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+            
             if (Input.GetKeyDown(recordButton))
             {
-                local = false;
-                ToggleRecording();
+                ToggleRecording(false);
             }
             if (Input.GetKeyDown(localRecordButton))
             {
-                local = true;
-                ToggleRecording();
+                ToggleRecording(true);
             }
 
             bool readyToRecordKeyframe = Time.time >= lastRecordTime + keyframeInterval;
@@ -55,7 +61,7 @@ namespace WalkAndTalk
             }
         }
         
-        private void ToggleRecording()
+        private void ToggleRecording(bool pressedLocalButton)
         {
             if (recording)
             {
@@ -65,6 +71,7 @@ namespace WalkAndTalk
             else
             {
                 recording = true;
+                lastRecordingWasLocal = pressedLocalButton;
                 recordedKeyframes.Clear();
                 startPosition = target.position;
                 startRotation = target.rotation;
@@ -75,7 +82,7 @@ namespace WalkAndTalk
 
         private IEnumerator ShowRecordingIndicator()
         {
-            Debug.Log($"Recording " + (local ? "local movement" : "movement"));
+            Debug.Log($"Recording " + (lastRecordingWasLocal ? "local movement" : "movement"));
             
             Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
             Color[][] originalColors = new Color[renderers.Length][];
@@ -119,12 +126,12 @@ namespace WalkAndTalk
         private void SaveRecording()
         {
             WalkRecording walkRecording = ScriptableObject.CreateInstance<WalkRecording>();
-            walkRecording.Local = local;    // TODO: if I was recording a global clip, and then click the local recording button, the file is saved as local. expected behavior is it is saved as global
+            walkRecording.Local = lastRecordingWasLocal;
             walkRecording.KeyframeInterval = keyframeInterval;
             walkRecording.Keyframes = recordedKeyframes;
             
             string timestamp = DateTime.Now.ToString("yyyy-MMdd-HHmmss");
-            string recordingName = $"{(local ? "Local" : "")}Recording_{timestamp}";
+            string recordingName = $"{(lastRecordingWasLocal ? "Local" : "")}Recording_{timestamp}";
             
             if (!System.IO.Directory.Exists(filepath))
             {
@@ -143,7 +150,7 @@ namespace WalkAndTalk
             Vector3 position = target.position;
             Vector3 rotation = target.eulerAngles;
             
-            if (local)
+            if (lastRecordingWasLocal)
             {
                 position = startRotation * (position - startPosition);
                 rotation = (Quaternion.Euler(rotation) * Quaternion.Inverse(startRotation)).eulerAngles;
@@ -162,23 +169,42 @@ namespace WalkAndTalk
         public void PreviewRecording(WalkRecording recording)
         {
             StopPreview();
-            previewCoroutine = StartCoroutine(PlayRecordingPreview(recording));
+            if (Application.isPlaying)
+            {
+                previewCoroutineRuntime = StartCoroutine(PlayRecordingPreview(recording));
+            }
+            else
+            {
+                previewCoroutineEditor = EditorCoroutineUtility.StartCoroutineOwnerless(PlayRecordingPreview(recording));
+            }
             PreviewIsPlaying = true;
         }
 
         public void StopPreview()
         {
-            if (previewCoroutine != null)
+            if (Application.isPlaying)
             {
-                StopCoroutine(previewCoroutine);
-                previewCoroutine = null;
-        
-                if (previewObject != null)
+                if (previewCoroutineRuntime != null)
                 {
-                    DestroyImmediate(previewObject);
-                    previewObject = null;
+                    StopCoroutine(previewCoroutineRuntime);
+                    previewCoroutineRuntime = null;
                 }
             }
+            else
+            {
+                if (previewCoroutineEditor != null)
+                {
+                    EditorCoroutineUtility.StopCoroutine(previewCoroutineEditor);
+                    previewCoroutineEditor = null;
+                }
+            }
+            
+            if (previewObject != null)
+            {
+                DestroyImmediate(previewObject);
+                previewObject = null;
+            }
+            
             PreviewIsPlaying = false;
         }
         
@@ -217,21 +243,25 @@ namespace WalkAndTalk
                 }
                 else
                 {
-                    // TODO: this doesn't work (and maybe can't work? I don't know if it's possible to see something happening smoothly in scene view over time while the game isn't running)
-                    float startTime = (float)EditorApplication.timeSinceStartup;
-                    while ((float)EditorApplication.timeSinceStartup - startTime < recording.KeyframeInterval)
-                    {
-                        yield return null;
-                        SceneView.RepaintAll();
-                    }
+                    EditorApplication.QueuePlayerLoopUpdate();
+                    yield return new EditorWaitForSeconds(recording.KeyframeInterval);
                 }
             }
     
             DestroyImmediate(previewObject.gameObject);
             PreviewIsPlaying = false;
+
+            if (!Application.isPlaying)
+            {
+                EditorApplication.QueuePlayerLoopUpdate();
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
         }
     }
     
+    /// <summary>
+    /// just a lil blue triangle
+    /// </summary>
     public class PositionGizmo : MonoBehaviour
     {
         private void OnDrawGizmos()
