@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Unity.EditorCoroutines.Editor;
-using UnityEngine.Serialization;
 
 namespace WalkAndTalk
 {
@@ -20,7 +19,7 @@ namespace WalkAndTalk
         [SerializeField] private Transform target;
         [SerializeField] private KeyCode recordButton, localRecordButton;
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
-        [SerializeField, Tooltip("recording file will be saved in this folder")] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
+        [SerializeField, Tooltip("recording file will be saved in this folder")] private DefaultAsset recordingsFolder;
 
         // important variables
         private List<WalkRecording.PositionRotationKeyframe> recordedKeyframes = new List<WalkRecording.PositionRotationKeyframe>();
@@ -114,6 +113,12 @@ namespace WalkAndTalk
         
         private void SaveRecording()
         {
+            string folderPath = AssetDatabase.GetAssetPath(recordingsFolder);
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                folderPath = "Assets/WalkAndTalk/Data/WalkRecordings";
+            }
+            
             WalkRecording walkRecording = ScriptableObject.CreateInstance<WalkRecording>();
             walkRecording.Local = lastRecordingWasLocal;
             walkRecording.KeyframeInterval = keyframeInterval;
@@ -122,12 +127,12 @@ namespace WalkAndTalk
             string timestamp = DateTime.Now.ToString("yyyy-MMdd-HHmmss");
             string recordingName = $"{(lastRecordingWasLocal ? "Local" : "")}Recording_{timestamp}";
             
-            if (!System.IO.Directory.Exists(filepath))
+            if (!System.IO.Directory.Exists(folderPath))
             {
-                System.IO.Directory.CreateDirectory(filepath);
+                System.IO.Directory.CreateDirectory(folderPath);
             }
             
-            string fullPath = $"{filepath}/{recordingName}.asset";
+            string fullPath = $"{folderPath}/{recordingName}.asset";
             AssetDatabase.CreateAsset(walkRecording, fullPath);
             AssetDatabase.SaveAssets();
                 
@@ -156,9 +161,13 @@ namespace WalkAndTalk
                 red = !red;
                 for (int i = 0; i < renderers.Length; i++)
                 {
+                    if (renderers[i] == null) continue;
+                    
                     for (int j = 0; j < renderers[i].materials.Length; j++)
                     {
-                        if (renderers[i] != null)
+                        if (j >= renderers[i].materials.Length) break;
+                        
+                        if (renderers[i].materials[j] != null)
                         {
                             renderers[i].materials[j].color = red ? Color.red : originalColors[i][j];
                         }

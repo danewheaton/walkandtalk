@@ -155,7 +155,7 @@ MonoBehaviour:
   recordButton: 257
   localRecordButton: 258
   keyframeInterval: 0.1
-  filepath: Assets/WalkAndTalk/Data/WalkRecordings
+  recordingsFolder: {fileID: 102900000, guid: d0c76aed820e42145a43128f8db6516c, type: 3}
 --- !u!4 &603555579
 Transform:
   m_ObjectHideFlags: 0
