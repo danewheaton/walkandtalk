@@ -27,7 +27,7 @@ namespace WalkAndTalk
                 {
                     if (activeRecorder != null)
                     {
-                        activeRecorder.StopPreview();
+                        activeRecorder.StopRecordingPreview();
                         activeRecorder = null;
                     }
                 }

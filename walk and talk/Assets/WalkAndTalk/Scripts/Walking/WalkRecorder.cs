@@ -17,20 +17,23 @@ namespace WalkAndTalk
     {
         public bool PreviewIsPlaying { get; private set; }
         
-        [FormerlySerializedAs("target")]
         [SerializeField] private Transform target;
         [SerializeField] private KeyCode recordButton, localRecordButton;
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
         [SerializeField, Tooltip("recording file will be saved in this folder")] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
 
+        // important variables
         private List<WalkRecording.PositionRotationKeyframe> recordedKeyframes = new List<WalkRecording.PositionRotationKeyframe>();
         private GameObject previewObject;
+        private bool recording = false;
+        
+        // bleh variables
         private Coroutine previewCoroutineRuntime;
         private EditorCoroutine previewCoroutineEditor;
         private Vector3 startPosition;
         private Quaternion startRotation;
         private float lastRecordTime = 0f;
-        private bool recording = false, lastRecordingWasLocal = false;
+        private bool lastRecordingWasLocal = false;
 
         private void OnEnable()
         {
@@ -62,8 +65,8 @@ namespace WalkAndTalk
                 ToggleRecording(true);
             }
 
-            bool readyToRecordKeyframe = Time.time >= lastRecordTime + keyframeInterval;
-            if (recording && readyToRecordKeyframe)
+            bool timeToRecordKeyframe = Time.time >= lastRecordTime + keyframeInterval;
+            if (recording && timeToRecordKeyframe)
             {
                 RecordKeyframe();
             }
@@ -86,6 +89,49 @@ namespace WalkAndTalk
 
                 StartCoroutine(ShowRecordingIndicator());
             }
+        }
+        
+        private void RecordKeyframe()
+        {
+            Vector3 position = target.position;
+            Vector3 rotation = target.eulerAngles;
+            
+            if (lastRecordingWasLocal)
+            {
+                position = startRotation * (position - startPosition);
+                rotation = (Quaternion.Euler(rotation) * Quaternion.Inverse(startRotation)).eulerAngles;    // TODO: rotation doesn't look right in preview
+            }
+            
+            WalkRecording.PositionRotationKeyframe keyframe = new WalkRecording.PositionRotationKeyframe
+            {
+                Position = position,
+                Rotation = rotation
+            };
+            
+            recordedKeyframes.Add(keyframe);
+            lastRecordTime = Time.time;
+        }
+        
+        private void SaveRecording()
+        {
+            WalkRecording walkRecording = ScriptableObject.CreateInstance<WalkRecording>();
+            walkRecording.Local = lastRecordingWasLocal;
+            walkRecording.KeyframeInterval = keyframeInterval;
+            walkRecording.Keyframes = recordedKeyframes;
+            
+            string timestamp = DateTime.Now.ToString("yyyy-MMdd-HHmmss");
+            string recordingName = $"{(lastRecordingWasLocal ? "Local" : "")}Recording_{timestamp}";
+            
+            if (!System.IO.Directory.Exists(filepath))
+            {
+                System.IO.Directory.CreateDirectory(filepath);
+            }
+            
+            string fullPath = $"{filepath}/{recordingName}.asset";
+            AssetDatabase.CreateAsset(walkRecording, fullPath);
+            AssetDatabase.SaveAssets();
+                
+            Debug.Log($"Recording saved at {fullPath} with {recordedKeyframes.Count} keyframes.");
         }
 
         private IEnumerator ShowRecordingIndicator()
@@ -132,67 +178,24 @@ namespace WalkAndTalk
                 }
             }
         }
-        
-        private void SaveRecording()
-        {
-            WalkRecording walkRecording = ScriptableObject.CreateInstance<WalkRecording>();
-            walkRecording.Local = lastRecordingWasLocal;
-            walkRecording.KeyframeInterval = keyframeInterval;
-            walkRecording.Keyframes = recordedKeyframes;
-            
-            string timestamp = DateTime.Now.ToString("yyyy-MMdd-HHmmss");
-            string recordingName = $"{(lastRecordingWasLocal ? "Local" : "")}Recording_{timestamp}";
-            
-            if (!System.IO.Directory.Exists(filepath))
-            {
-                System.IO.Directory.CreateDirectory(filepath);
-            }
-            
-            string fullPath = $"{filepath}/{recordingName}.asset";
-            AssetDatabase.CreateAsset(walkRecording, fullPath);
-            AssetDatabase.SaveAssets();
-                
-            Debug.Log($"Recording saved at {fullPath} with {recordedKeyframes.Count} keyframes.");
-        }
 
-        private void RecordKeyframe()
+        public void PreviewRecording(WalkRecording recordingToPreview)
         {
-            Vector3 position = target.position;
-            Vector3 rotation = target.eulerAngles;
-            
-            if (lastRecordingWasLocal)
-            {
-                position = startRotation * (position - startPosition);
-                rotation = (Quaternion.Euler(rotation) * Quaternion.Inverse(startRotation)).eulerAngles;
-            }
-            
-            WalkRecording.PositionRotationKeyframe keyframe = new WalkRecording.PositionRotationKeyframe
-            {
-                Position = position,
-                Rotation = rotation
-            };
-            
-            recordedKeyframes.Add(keyframe);
-            lastRecordTime = Time.time;
-        }
-        
-        public void PreviewRecording(WalkRecording recording)
-        {
-            StopPreview();
+            StopRecordingPreview();
             if (Application.isPlaying)
             {
-                previewCoroutineRuntime = StartCoroutine(PlayRecordingPreview(recording));
+                previewCoroutineRuntime = StartCoroutine(PlayRecordingPreview(recordingToPreview));
             }
             else
             {
-                previewCoroutineEditor = EditorCoroutineUtility.StartCoroutineOwnerless(PlayRecordingPreview(recording));
+                previewCoroutineEditor = EditorCoroutineUtility.StartCoroutineOwnerless(PlayRecordingPreview(recordingToPreview));
             }
             PreviewIsPlaying = true;
         }
         
-        private IEnumerator PlayRecordingPreview(WalkRecording recording)
+        private IEnumerator PlayRecordingPreview(WalkRecording recordingToPreview)
         {
-            if (recording == null || recording.Keyframes.Count == 0)
+            if (recordingToPreview == null || recordingToPreview.Keyframes.Count == 0)
             {
                 yield break;
             }
@@ -201,17 +204,17 @@ namespace WalkAndTalk
             previewObject.AddComponent<PositionGizmo>();
             Transform previewTransform = previewObject.transform;
     
-            Vector3 startPos = target.position;
-            Quaternion startRot = target.rotation;
+            Vector3 previewStartPosition = target.position;
+            Quaternion previewStartRotation = target.rotation;
     
-            for (int i = 0; i < recording.Keyframes.Count; i++)
+            for (int i = 0; i < recordingToPreview.Keyframes.Count; i++)
             {
-                WalkRecording.PositionRotationKeyframe keyframe = recording.Keyframes[i];
+                WalkRecording.PositionRotationKeyframe keyframe = recordingToPreview.Keyframes[i];
         
-                if (recording.Local)
+                if (recordingToPreview.Local)
                 {
-                    previewTransform.position = startPos + startRot * keyframe.Position;
-                    previewTransform.rotation = startRot * Quaternion.Euler(keyframe.Rotation);
+                    previewTransform.rotation = previewStartRotation * Quaternion.Euler(keyframe.Rotation);
+                    previewTransform.position = previewStartPosition + previewStartRotation * keyframe.Position;
                 }
                 else
                 {
@@ -221,12 +224,12 @@ namespace WalkAndTalk
 
                 if (Application.isPlaying)
                 {
-                    yield return new WaitForSeconds(recording.KeyframeInterval);
+                    yield return new WaitForSeconds(recordingToPreview.KeyframeInterval);
                 }
                 else
                 {
                     EditorApplication.QueuePlayerLoopUpdate();
-                    yield return new EditorWaitForSeconds(recording.KeyframeInterval);
+                    yield return new EditorWaitForSeconds(recordingToPreview.KeyframeInterval);
                 }
             }
     
@@ -236,11 +239,11 @@ namespace WalkAndTalk
             if (!Application.isPlaying)
             {
                 EditorApplication.QueuePlayerLoopUpdate();
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
+            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();    // so that the preview button updates
         }
 
-        public void StopPreview()
+        public void StopRecordingPreview()
         {
             if (Application.isPlaying)
             {
