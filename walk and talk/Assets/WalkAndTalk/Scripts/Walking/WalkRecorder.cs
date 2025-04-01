@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Unity.EditorCoroutines.Editor;
+using UnityEngine.Serialization;
 
 namespace WalkAndTalk
 {
@@ -12,12 +13,13 @@ namespace WalkAndTalk
     /// this is a fun one - press a button to start recording yourself walking around, then press it again to save your movements as a collection of keyframes!
     /// </summary>
     [ExecuteInEditMode]
-    public class WalkRecorder : MonoBehaviour   // TODO: should this maybe be a scriptable object or even an editor window or something? I don't see a reason this needs to exist as a GameObject in a scene
+    public class WalkRecorder : MonoBehaviour   // TODO: maybe I should make this a scriptable object or even an editor window or something? I don't see a reason this needs to exist as a GameObject in a scene
     {
         public bool PreviewIsPlaying { get; private set; }
         
-        [SerializeField] private Transform target;  // TODO: if the user drags a prefab into this slot rather than a gameObject in the scene, the code should understand to look for an instance at runtime
-        [SerializeField] private KeyCode recordButton, localRecordButton;   // TODO: there should also be options for the new input system
+        [FormerlySerializedAs("target")]
+        [SerializeField] private Transform target;
+        [SerializeField] private KeyCode recordButton, localRecordButton;
         [SerializeField, Tooltip("save player position/rotation every __ seconds")] private float keyframeInterval = 0.1f;
         [SerializeField, Tooltip("recording file will be saved in this folder")] private string filepath = "Assets/WalkAndTalk/Data/WalkRecordings";
 
@@ -30,17 +32,23 @@ namespace WalkAndTalk
         private float lastRecordTime = 0f;
         private bool recording = false, lastRecordingWasLocal = false;
 
-        private void Awake()
+        private void OnEnable()
         {
-            if (target == null)
+            if (Application.isPlaying)
             {
-                target = transform;
+                StartCoroutine(InitializeTargetAfterWait());
             }
+        }
+
+        private IEnumerator InitializeTargetAfterWait()
+        {
+            yield return new WaitForSeconds(0.1f);  // in case target is spawned in, we give it some time to appear
+            InitializeTarget();
         }
 
         private void Update()
         {
-            if (!Application.isPlaying)
+            if (!Application.isPlaying || target == null)
             {
                 return;
             }
@@ -95,20 +103,22 @@ namespace WalkAndTalk
                     originalColors[i][j] = renderers[i].materials[j].color;
                 }
             }
-            
+
+            bool red = false;
             while (recording)
             {
+                red = !red;
                 for (int i = 0; i < renderers.Length; i++)
                 {
                     for (int j = 0; j < renderers[i].materials.Length; j++)
                     {
                         if (renderers[i] != null)
                         {
-                            renderers[i].materials[j].color = Time.time % 1 > 0.5f ? originalColors[i][j] : Color.red;
+                            renderers[i].materials[j].color = red ? Color.red : originalColors[i][j];
                         }
                     }
                 }
-                yield return null;
+                yield return new WaitForSeconds(0.5f);
             }
             
             for (int i = 0; i < renderers.Length; i++)
@@ -179,34 +189,6 @@ namespace WalkAndTalk
             }
             PreviewIsPlaying = true;
         }
-
-        public void StopPreview()
-        {
-            if (Application.isPlaying)
-            {
-                if (previewCoroutineRuntime != null)
-                {
-                    StopCoroutine(previewCoroutineRuntime);
-                    previewCoroutineRuntime = null;
-                }
-            }
-            else
-            {
-                if (previewCoroutineEditor != null)
-                {
-                    EditorCoroutineUtility.StopCoroutine(previewCoroutineEditor);
-                    previewCoroutineEditor = null;
-                }
-            }
-            
-            if (previewObject != null)
-            {
-                DestroyImmediate(previewObject);
-                previewObject = null;
-            }
-            
-            PreviewIsPlaying = false;
-        }
         
         private IEnumerator PlayRecordingPreview(WalkRecording recording)
         {
@@ -256,6 +238,63 @@ namespace WalkAndTalk
                 EditorApplication.QueuePlayerLoopUpdate();
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
+        }
+
+        public void StopPreview()
+        {
+            if (Application.isPlaying)
+            {
+                if (previewCoroutineRuntime != null)
+                {
+                    StopCoroutine(previewCoroutineRuntime);
+                    previewCoroutineRuntime = null;
+                }
+            }
+            else
+            {
+                if (previewCoroutineEditor != null)
+                {
+                    EditorCoroutineUtility.StopCoroutine(previewCoroutineEditor);
+                    previewCoroutineEditor = null;
+                }
+            }
+            
+            if (previewObject != null)
+            {
+                DestroyImmediate(previewObject);
+                previewObject = null;
+            }
+            
+            PreviewIsPlaying = false;
+        }
+
+        public void InitializeTarget()
+        {
+            if (target == null)
+            {
+                target = transform;
+            }
+            else
+            {
+                if (PrefabUtility.GetPrefabAssetType(target) != PrefabAssetType.NotAPrefab)  // if target is a prefab
+                {
+                    string targetName = target.name;
+                    target = GameObject.Find(targetName)?.transform;   // just find one with the same name
+                    if (target == null)
+                    {
+                        target = GameObject.Find(targetName + "(Clone)")?.transform;   // or maybe it's spawned in
+                    }
+                    if (target == null)
+                    {
+                        Debug.LogWarning($"No '{targetName}' instance found, so you can't record its movement.");
+                    }
+                }
+            }
+        }
+
+        public void SetTarget(Transform newTarget)
+        {
+            target = newTarget;
         }
     }
     

@@ -13,6 +13,7 @@ public class PoseEditor
      * - user can easily define which joints they care about for each rig
      * - click the button again to export pose to an animation file and exit posing mode
      * - while posing, there is another button for exporting that does not exit posing mode, so the user can keep working from the current pose
+     * - a third button/field allowing the user to easily paste a pose onto the rig without having to select joints (though selecting joints will still work, so that the user can selectively paste the pose onto only specific joints)
      *
      * COMPATIBILITY
      * - should be compatible with unity's animation rigging package

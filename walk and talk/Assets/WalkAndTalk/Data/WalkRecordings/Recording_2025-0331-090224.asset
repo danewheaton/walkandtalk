@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee68076b35cc8634aac36a9681dfe22c, type: 3}
+  m_Name: Recording_2025-0331-090224
+  m_EditorClassIdentifier: 
+  Local: 0
+  KeyframeInterval: 0.1
+  Keyframes:
+  - Position: {x: 1.0703877, y: -0.5100001, z: -1.7101682}
+    Rotation: {x: -0, y: 126.20117, z: 0}
+  - Position: {x: 1.2764701, y: -0.5100001, z: -1.7101682}
+    Rotation: {x: -0, y: 102.03165, z: 0}
+  - Position: {x: 1.4810331, y: -0.5100001, z: -1.7101682}
+    Rotation: {x: -0, y: 93.189995, z: 0}
+  - Position: {x: 1.681184, y: -0.5100001, z: -1.7101681}
+    Rotation: {x: -0, y: 90.787476, z: 0}
+  - Position: {x: 1.8838137, y: -0.5100001, z: -1.7101681}
+    Rotation: {x: -0, y: 90.18037, z: 0}
+  - Position: {x: 2.0890303, y: -0.5100001, z: -1.7101681}
+    Rotation: {x: -0, y: 90.03902, z: 0}
+  - Position: {x: 2.29039, y: -0.5100001, z: -1.7101681}
+    Rotation: {x: -0, y: 90.00848, z: 0}
+  - Position: {x: 2.4926243, y: -0.5100001, z: -1.7101681}
+    Rotation: {x: -0, y: 90.001785, z: 0}
+  - Position: {x: 2.576259, y: -0.51000005, z: -1.795294}
+    Rotation: {x: -0, y: 109.99453, z: 0}
+  - Position: {x: 2.576259, y: -0.5100001, z: -1.9790612}
+    Rotation: {x: -0, y: 155.48434, z: 0}
+  - Position: {x: 2.576259, y: -0.51000005, z: -2.1859734}
+    Rotation: {x: -0, y: 173.57216, z: 0}
+  - Position: {x: 2.576259, y: -0.5100001, z: -2.3874474}
+    Rotation: {x: -0, y: 178.41891, z: 0}
+  - Position: {x: 2.576259, y: -0.51, z: -2.5977907}
+    Rotation: {x: -0, y: 179.6566, z: 0}
+  - Position: {x: 2.576259, y: -0.5100001, z: -2.7981904}
+    Rotation: {x: -0, y: 179.92284, z: 0}
+  - Position: {x: 2.576259, y: -0.51, z: -3.0059195}
+    Rotation: {x: -0, y: 179.98404, z: 0}
+  - Position: {x: 2.5019987, y: -0.5100001, z: -3.180019}
+    Rotation: {x: -0, y: 189.79115, z: 0}
+  - Position: {x: 2.3543823, y: -0.5100001, z: -3.3276353}
+    Rotation: {x: -0, y: 213.06087, z: 0}
+  - Position: {x: 2.165038, y: -0.51000005, z: -3.3543715}
+    Rotation: {x: -0, y: 239.33154, z: 0}
+  - Position: {x: 1.9573437, y: -0.51000005, z: -3.3543715}
+    Rotation: {x: -0, y: 260.79437, z: 0}
+  - Position: {x: 1.7466542, y: -0.5100001, z: -3.3543713}
+    Rotation: {x: -0, y: 267.7458, z: 0}
+  - Position: {x: 1.5415617, y: -0.51000005, z: -3.3543713}
+    Rotation: {x: -0, y: 269.47446, z: 0}
+  - Position: {x: 1.3326323, y: -0.51000005, z: -3.3543713}
+    Rotation: {x: -0, y: 269.88666, z: 0}
+  - Position: {x: 1.1349356, y: -0.5100001, z: -3.3543713}
+    Rotation: {x: -0, y: 269.9626, z: 0}
+  - Position: {x: 1.0425816, y: -0.5100001, z: -3.3543713}
+    Rotation: {x: -0, y: 269.9626, z: 0}
+  - Position: {x: 1.1260674, y: -0.5100001, z: -3.3543713}
+    Rotation: {x: -0, y: 191.04623, z: 0}
+  - Position: {x: 1.2959166, y: -0.51000005, z: -3.3543713}
+    Rotation: {x: -0, y: 120.14691, z: 0}
+  - Position: {x: 1.4864004, y: -0.5100001, z: -3.3453228}
+    Rotation: {x: -0, y: 97.4261, z: 0}
+  - Position: {x: 1.6346282, y: -0.5100001, z: -3.1970952}
+    Rotation: {x: -0, y: 66.89241, z: 0}
+  - Position: {x: 1.7243066, y: -0.51, z: -3.0286293}
+    Rotation: {x: -0, y: 44.89913, z: 0}
+  - Position: {x: 1.7243066, y: -0.5100001, z: -2.8279855}
+    Rotation: {x: -0, y: 16.215277, z: 0}
+  - Position: {x: 1.7243066, y: -0.51000005, z: -2.6216815}
+    Rotation: {x: -0, y: 4.3449206, z: 0}
+  - Position: {x: 1.7243066, y: -0.51000005, z: -2.4152412}
+    Rotation: {x: -0, y: 1.0365129, z: 0}
+  - Position: {x: 1.7243066, y: -0.51000005, z: -2.2070725}
+    Rotation: {x: -0, y: 0.22909175, z: 0}
+  - Position: {x: 1.6727493, y: -0.5100001, z: -2.0224624}
+    Rotation: {x: -0, y: 354.4783, z: 0}
+  - Position: {x: 1.527337, y: -0.51, z: -1.8770499}
+    Rotation: {x: -0, y: 329.71716, z: 0}
+  - Position: {x: 1.3807279, y: -0.51000005, z: -1.7304409}
+    Rotation: {x: -0, y: 318.9818, z: 0}
+  - Position: {x: 1.3539033, y: -0.51, z: -1.5367583}
+    Rotation: {x: -0, y: 334.14664, z: 0}
+  - Position: {x: 1.4042201, y: -0.51000017, z: -1.3550442}
+    Rotation: {x: -0, y: 357.1028, z: 0}
+  - Position: {x: 1.54599, y: -0.5100001, z: -1.2132744}
+    Rotation: {x: -0, y: 27.4924, z: 0}
+  - Position: {x: 1.6888148, y: -0.51000005, z: -1.0704496}
+    Rotation: {x: -0, y: 40.150864, z: 0}
+  - Position: {x: 1.8307811, y: -0.51, z: -0.9284833}
+    Rotation: {x: -0, y: 43.791084, z: 0}
+  - Position: {x: 2.0144236, y: -0.5100001, z: -0.8731089}
+    Rotation: {x: -0, y: 57.721245, z: 0}
+  - Position: {x: 2.222752, y: -0.51000005, z: -0.8731089}
+    Rotation: {x: -0, y: 79.549416, z: 0}
+  - Position: {x: 2.4327729, y: -0.51000005, z: -0.8731089}
+    Rotation: {x: -0, y: 87.34695, z: 0}
