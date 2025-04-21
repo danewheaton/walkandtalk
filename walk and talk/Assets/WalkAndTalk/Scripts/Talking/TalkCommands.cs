@@ -14,9 +14,12 @@ namespace WalkAndTalk
         /// </summary>
         /// <param name="talker"></param>
         /// <param name="line"></param>
-        public void Talk(Talker talker, List<Talker.Line> line)
+        public void Talk(List<Talker.Line> lines)
         {
-            
+            foreach (Talker.Line line in lines) 
+            {
+                line.TalkerInstance.Talk(line);
+            }
         }
         
         public void PinSubtitle(Subtitle subtitle, Vector3 position)
